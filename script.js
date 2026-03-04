@@ -77,6 +77,10 @@ function scheduleTone(ctx, frequency, startAt, duration, type = "sine", volume =
 
 function playCelebrationSound() {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const master = ctx.createGain();
+    master.gain.value = 2.8;
+    master.connect(ctx.destination);
+
     const base = ctx.currentTime + 0.03;
     const melody = [
         { f: 392, d: 0.2 }, { f: 392, d: 0.2 }, { f: 440, d: 0.38 },
@@ -87,8 +91,30 @@ function playCelebrationSound() {
 
     let cursor = base;
     for (const note of melody) {
-        scheduleTone(ctx, note.f, cursor, note.d, "triangle", 0.14);
-        scheduleTone(ctx, note.f / 2, cursor, note.d, "sine", 0.05);
+        const lead = ctx.createOscillator();
+        const leadGain = ctx.createGain();
+        lead.type = "triangle";
+        lead.frequency.setValueAtTime(note.f, cursor);
+        leadGain.gain.setValueAtTime(0.0001, cursor);
+        leadGain.gain.exponentialRampToValueAtTime(0.32, cursor + 0.02);
+        leadGain.gain.exponentialRampToValueAtTime(0.0001, cursor + note.d);
+        lead.connect(leadGain);
+        leadGain.connect(master);
+        lead.start(cursor);
+        lead.stop(cursor + note.d + 0.03);
+
+        const bass = ctx.createOscillator();
+        const bassGain = ctx.createGain();
+        bass.type = "sine";
+        bass.frequency.setValueAtTime(note.f / 2, cursor);
+        bassGain.gain.setValueAtTime(0.0001, cursor);
+        bassGain.gain.exponentialRampToValueAtTime(0.12, cursor + 0.02);
+        bassGain.gain.exponentialRampToValueAtTime(0.0001, cursor + note.d);
+        bass.connect(bassGain);
+        bassGain.connect(master);
+        bass.start(cursor);
+        bass.stop(cursor + note.d + 0.03);
+
         cursor += note.d + 0.03;
     }
 }
