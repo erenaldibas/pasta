@@ -87,8 +87,8 @@ function playCelebrationSound() {
 
     let cursor = base;
     for (const note of melody) {
-        scheduleTone(ctx, note.f, cursor, note.d, "triangle", 0.06);
-        scheduleTone(ctx, note.f / 2, cursor, note.d, "sine", 0.02);
+        scheduleTone(ctx, note.f, cursor, note.d, "triangle", 0.14);
+        scheduleTone(ctx, note.f / 2, cursor, note.d, "sine", 0.05);
         cursor += note.d + 0.03;
     }
 }
